@@ -94,6 +94,7 @@
 	rebase = true
 [branch]
 	autosetuprebase = always
+	sort = -committerdate
 [url "git@github.com:"]
 	#insteadOf = git://github.com/
 	#insteadOf = http://github.com/
@@ -102,3 +103,5 @@
 	lineNumber = true
 [diff]
 	compactionHeuristic = true
+[tag]
+	sort = -version:refname

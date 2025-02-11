@@ -61,3 +61,4 @@ If you know how to use git and have already installed it, you can also clone thi
   - gtab: Fine-tuned input method settings for efficient text input
   - inputrc: User-friendly keybindings for readline
   - xinputrc: Input method settings (commented out by default) for potential customization
+  - hadolint: Linter rules for Dockerfiles

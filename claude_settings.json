@@ -1,0 +1,22 @@
+{
+  "enabledPlugins": {
+    "copilot-review@appleboy-skills": true,
+    "andrej-karpathy-skills@karpathy-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "appleboy-skills": {
+      "source": {
+        "source": "github",
+        "repo": "appleboy/skills"
+      }
+    },
+    "karpathy-skills": {
+      "source": {
+        "source": "github",
+        "repo": "forrestchang/andrej-karpathy-skills"
+      }
+    }
+  },
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true
+}

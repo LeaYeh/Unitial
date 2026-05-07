@@ -40,6 +40,10 @@ ${download_o} ~/.irssi/config "${github_base}${repo_path}irssi_config" &
 ${download_o} ~/.aria2/aria2.conf "${github_base}${repo_path}aria2.conf" &
 ${download_o} ~/.hadolint/hadolint.yaml "${github_base}${repo_path}hadolint.yaml" &
 
+${MKDIR} -p ~/.claude/
+${download_o} ~/.claude/settings.json "${github_base}${repo_path}claude_settings.json" &
+${download_o} ~/.claude/CLAUDE.md "${github_base}${repo_path}claude.md" &
+
 ${download_o} ~/.colorEcho "${github_base}PeterDaveHello/ColorEchoForShell/master/dist/ColorEcho.bash" &
 
 ${MKDIR} -p ~/.gcin/

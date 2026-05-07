@@ -6,7 +6,7 @@ MKDIR="/bin/mkdir"
 TOUCH="/usr/bin/touch"
 
 github_base='https://raw.githubusercontent.com/'
-repo_path='PeterDaveHello/Unitial/master/'
+repo_path='LeaYeh/Unitial/master/'
 
 os="$(uname)"
 if [ "$os" = "FreeBSD" ]; then

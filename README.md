@@ -16,22 +16,20 @@ Unitial is a shell scripts and a collection of configurations designed to set up
 To install with `curl`:
 
 ```sh
-curl -Lo- https://github.com/PeterDaveHello/Unitial/raw/master/setup.sh | bash
+curl -Lo- https://github.com/LeaYeh/Unitial/raw/master/setup.sh | bash
 ```
 
 To install with `wget`:
 
 ```sh
-wget  -O- https://github.com/PeterDaveHello/Unitial/raw/master/setup.sh | bash
+wget  -O- https://github.com/LeaYeh/Unitial/raw/master/setup.sh | bash
 ```
 
 For FreeBSD users without both `wget` and `curl`, try:
 
 ```sh
-fetch -o- https://github.com/PeterDaveHello/Unitial/raw/master/setup.sh | bash
+fetch -o- https://github.com/LeaYeh/Unitial/raw/master/setup.sh | bash
 ```
-
-(You can replace the URL with a shorter one: https://git.io/Unitial)
 
 The installation process will complete in seconds.
 
@@ -62,3 +60,4 @@ If you know how to use git and have already installed it, you can also clone thi
   - inputrc: User-friendly keybindings for readline
   - xinputrc: Input method settings (commented out by default) for potential customization
   - hadolint: Linter rules for Dockerfiles
+  - Claude Code: Global preferences (CLAUDE.md) and settings (settings.json) for Claude Code CLI

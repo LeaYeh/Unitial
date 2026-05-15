@@ -10,13 +10,11 @@ repo_path='LeaYeh/Unitial/master/'
 
 os="$(uname)"
 if [ "$os" = "FreeBSD" ]; then
-  ECHO="echo"
-  ${ECHO} -e "\n\e[1;36;40mYour operating system is $os\n\e[0m"
-  ${ECHO} -e "\n\e[1;36;40mSuppose you have 'fetch' to download files!\n\e[0m"
+  printf '\n\033[1;36;40mYour operating system is %s\n\033[0m\n' "$os"
+  printf '\n\033[1;36;40mSuppose you have '"'"'fetch'"'"' to download files!\n\033[0m\n'
   download_o='fetch -o'
 else
-  ECHO="/bin/echo"
-  ${ECHO} -e "\n\e[1;36;40mYour operating system is $os\n\e[0m"
+  printf '\n\033[1;36;40mYour operating system is %s\n\033[0m\n' "$os"
   if type "curl" > /dev/null 2>&1; then
     download_o='curl --compressed -#o'
   elif type "wget" > /dev/null 2>&1; then
@@ -26,9 +24,9 @@ else
   fi
 fi
 
-${ECHO} -e "\n\e[1;36;40mUnitial is started to initial your Unix-like working environment\n\nPlease wait...\n\n\e[0m"
+printf '\n\033[1;36;40mUnitial is started to initial your Unix-like working environment\n\nPlease wait...\n\n\033[0m\n'
 
-${ECHO} -e "\n\e[1;36;40mDownload and setup configs from server...\n\e[0m"
+printf '\n\033[1;36;40mDownload and setup configs from server...\n\033[0m\n'
 for file in gitconfig tcshrc bashrc bash_profile inputrc vimrc zshrc gitignore_global tmux.conf xinputrc wgetrc curlrc tigrc editorconfig php_cs markdownlintrc lftprc; do
   ${download_o} - "${github_base}${repo_path}${file}" | ${CAT} >> ~/."$file" &
 done
@@ -44,7 +42,7 @@ ${MKDIR} -p ~/.claude/
 
 # CLAUDE.md: from Unitial (symlink if cloned, else download)
 if [ -n "$UNITIAL_DIR" ]; then
-  ${ECHO} -e "\n\e[1;36;40mCreating Claude Code CLAUDE.md symlink from $UNITIAL_DIR...\n\e[0m"
+  printf '\n\033[1;36;40mCreating Claude Code CLAUDE.md symlink from %s\n\033[0m\n' "$UNITIAL_DIR"
   ln -sf "${UNITIAL_DIR}/claude/CLAUDE.md" ~/.claude/CLAUDE.md
 else
   ${download_o} ~/.claude/CLAUDE.md "${github_base}${repo_path}claude/CLAUDE.md" &
@@ -56,12 +54,12 @@ if [ -z "$SKILLS_DIR" ]; then
   if [ -d "${HOME}/skills/.git" ]; then
     SKILLS_DIR="${HOME}/skills"
   else
-    ${ECHO} -e "\n\e[1;36;40mCloning LeaYeh/skills to ~/skills...\n\e[0m"
+    printf '\n\033[1;36;40mCloning LeaYeh/skills to ~/skills...\n\033[0m\n'
     git clone git@github.com:LeaYeh/skills.git "${HOME}/skills"
     SKILLS_DIR="${HOME}/skills"
   fi
 fi
-${ECHO} -e "\n\e[1;36;40mCreating Claude Code symlinks from $SKILLS_DIR...\n\e[0m"
+printf '\n\033[1;36;40mCreating Claude Code symlinks from %s\n\033[0m\n' "$SKILLS_DIR"
 ln -sf "${SKILLS_DIR}/settings.json" ~/.claude/settings.json
 rm -rf ~/.claude/commands
 ln -sf "${SKILLS_DIR}/commands" ~/.claude/commands
@@ -69,7 +67,7 @@ ln -sf "${SKILLS_DIR}/commands" ~/.claude/commands
 # Fallback: manually install Claude Code plugins whose repos use plugin.json instead of
 # marketplace.json. Claude Code's extraKnownMarketplaces silently skips these repos because
 # it expects a marketplace format, so we clone and register them directly.
-${ECHO} -e "\n\e[1;36;40mInstalling Claude Code plugins (fallback for plugin-type repos)...\n\e[0m"
+printf '\n\033[1;36;40mInstalling Claude Code plugins (fallback for plugin-type repos)...\n\033[0m\n'
 if command -v python3 > /dev/null 2>&1 && command -v git > /dev/null 2>&1; then
   SKILLS_DIR="$SKILLS_DIR" python3 << 'PYEOF'
 import json, os, subprocess, shutil, datetime, sys
@@ -176,7 +174,7 @@ with open(installed_path, "w") as f:
 print("Claude plugin fallback install complete.")
 PYEOF
 else
-  ${ECHO} -e "  Skipping: python3 or git not available"
+  printf '  Skipping: python3 or git not available\n'
 fi
 
 ${download_o} ~/.colorEcho "${github_base}PeterDaveHello/ColorEchoForShell/master/dist/ColorEcho.bash" &
@@ -192,20 +190,20 @@ ${CHMOD} 600 ~/.ssh/config ~/.ssh/authorized_keys
 
 wait
 
-${ECHO} -e "\n\e[1;36;40mAdd some color setting which depends on your OS...\n\e[0m"
+printf '\n\033[1;36;40mAdd some color setting which depends on your OS...\n\033[0m\n'
 if [ "$os" = "FreeBSD" ] || [ "$os" = "Darwin" ]; then
-  ${ECHO} -e "\n#color setting\nalias ls='\ls -F'" >> ~/.zshrc
-  ${ECHO} -e "\n#color setting\nalias ls '\ls -F'" >> ~/.tcshrc
+  printf '\n#color setting\nalias ls='"'"'\\ls -F'"'"'\n' >> ~/.zshrc
+  printf '\n#color setting\nalias ls '"'"'\\ls -F'"'"'\n' >> ~/.tcshrc
 else
-  ${ECHO} -e "\n#color setting\nalias ls='\ls -F --color=auto'" >> ~/.zshrc
-  ${ECHO} -e "\n#color setting\nalias ls '\ls -F --color=auto'" >> ~/.tcshrc
+  printf '\n#color setting\nalias ls='"'"'\\ls -F --color=auto'"'"'\n' >> ~/.zshrc
+  printf '\n#color setting\nalias ls '"'"'\\ls -F --color=auto'"'"'\n' >> ~/.tcshrc
 fi
 
 if [ "$os" = "FreeBSD" ]; then
-  ${ECHO} -e "\n\e[1;36;40mAdd FreeBSD's package mirror setting...\n\e[0m"
-  ${ECHO} -e "\n#package mirror setting\nexport PACKAGEROOT=http://ftp.tw.freebsd.org" >> ~/.bashrc
-  ${ECHO} -e "\n#package mirror setting\nexport PACKAGEROOT=http://ftp.tw.freebsd.org" >> ~/.zshrc
-  ${ECHO} -e "\n#package mirror setting\nsetenv PACKAGEROOT http://ftp.tw.freebsd.org" >> ~/.tcshrc
+  printf '\n\033[1;36;40mAdd FreeBSD'"'"'s package mirror setting...\n\033[0m\n'
+  printf '\n#package mirror setting\nexport PACKAGEROOT=http://ftp.tw.freebsd.org\n' >> ~/.bashrc
+  printf '\n#package mirror setting\nexport PACKAGEROOT=http://ftp.tw.freebsd.org\n' >> ~/.zshrc
+  printf '\n#package mirror setting\nsetenv PACKAGEROOT http://ftp.tw.freebsd.org\n' >> ~/.tcshrc
 fi
 
 if command -v git; then
@@ -214,11 +212,11 @@ else
   git_version="master"
 fi
 
-${ECHO} -e "\n\e[1;36;40mDownload VIM color scheme - Kolor from server...\n\e[0m"
+printf '\n\033[1;36;40mDownload VIM color scheme - Kolor from server...\n\033[0m\n'
 ${download_o} ~/.vim/colors/kolor.vim "${github_base}zeis/vim-kolor/master/colors/kolor.vim" &
-${ECHO} -e "\n\e[1;36;40mDownload git contrib - diff-highlight from server...\n\e[0m"
+printf '\n\033[1;36;40mDownload git contrib - diff-highlight from server...\n\033[0m\n'
 ${download_o} ~/.git/contrib/diff-highlight "${github_base}git/git/v2.13.2/contrib/diff-highlight/diff-highlight" && ${CHMOD} +x ~/.git/contrib/diff-highlight &
-${ECHO} -e "\n\e[1;36;40mDownload git's auto completion configs from server...\n\e[0m"
+printf '\n\033[1;36;40mDownload git'"'"'s auto completion configs from server...\n\033[0m\n'
 git_auto_complete_path="${github_base}git/git/${git_version}/contrib/completion/git-completion."
 ${download_o} ~/.git-completion.bash "${git_auto_complete_path}bash" &
 ${download_o} ~/.git-completion.tcsh "${git_auto_complete_path}tcsh" &
@@ -227,9 +225,9 @@ ${download_o} ~/.git-completion.zsh "${git_auto_complete_path}zsh" &
 wait
 
 if [ "$os" = "FreeBSD" ] && [ -r /usr/local/share/certs/ca-root-nss.crt ]; then
-  ${ECHO} -e "\n\e[1;36;40mAdd ca-certificate path for FreeBSD's wget & aria2...\n\e[0m"
-  ${ECHO} -e "\nca-certificate=/usr/local/share/certs/ca-root-nss.crt" >> ~/.wgetrc
-  ${ECHO} -e "\nca-certificate=/usr/local/share/certs/ca-root-nss.crt" >> ~/.aria2/aria2.conf
+  printf '\n\033[1;36;40mAdd ca-certificate path for FreeBSD'"'"'s wget & aria2...\n\033[0m\n'
+  printf '\nca-certificate=/usr/local/share/certs/ca-root-nss.crt\n' >> ~/.wgetrc
+  printf '\nca-certificate=/usr/local/share/certs/ca-root-nss.crt\n' >> ~/.aria2/aria2.conf
 fi
 
-${ECHO} -e "\n\e[1;36;40mUnitial installation was finished!\n\nPlease terminate all other works and restart your shell or re-login.\n\e[0m"
+printf '\n\033[1;36;40mUnitial installation was finished!\n\nPlease terminate all other works and restart your shell or re-login.\n\033[0m\n'

@@ -66,6 +66,119 @@ ln -sf "${SKILLS_DIR}/settings.json" ~/.claude/settings.json
 rm -rf ~/.claude/commands
 ln -sf "${SKILLS_DIR}/commands" ~/.claude/commands
 
+# Fallback: manually install Claude Code plugins whose repos use plugin.json instead of
+# marketplace.json. Claude Code's extraKnownMarketplaces silently skips these repos because
+# it expects a marketplace format, so we clone and register them directly.
+${ECHO} -e "\n\e[1;36;40mInstalling Claude Code plugins (fallback for plugin-type repos)...\n\e[0m"
+if command -v python3 > /dev/null 2>&1 && command -v git > /dev/null 2>&1; then
+  SKILLS_DIR="$SKILLS_DIR" python3 << 'PYEOF'
+import json, os, subprocess, shutil, datetime, sys
+
+settings_path = os.path.join(os.environ["SKILLS_DIR"], "settings.json")
+plugins_dir   = os.path.expanduser("~/.claude/plugins")
+cache_dir     = os.path.join(plugins_dir, "cache")
+mkts_dir      = os.path.join(plugins_dir, "marketplaces")
+known_path    = os.path.join(plugins_dir, "known_marketplaces.json")
+installed_path = os.path.join(plugins_dir, "installed_plugins.json")
+
+os.makedirs(cache_dir, exist_ok=True)
+os.makedirs(mkts_dir, exist_ok=True)
+
+with open(settings_path) as f:
+    settings = json.load(f)
+
+known = {}
+if os.path.exists(known_path):
+    with open(known_path) as f:
+        known = json.load(f)
+
+installed = {"version": 2, "plugins": {}}
+if os.path.exists(installed_path):
+    with open(installed_path) as f:
+        installed = json.load(f)
+
+extra = settings.get("extraKnownMarketplaces", {})
+enabled = settings.get("enabledPlugins", {})
+
+for mkt_id, mkt_cfg in extra.items():
+    if mkt_id in known:
+        continue  # already registered; Claude Code handles updates itself
+
+    repo = mkt_cfg["source"]["repo"]
+    clone_path = os.path.join(mkts_dir, mkt_id)
+
+    if not os.path.exists(os.path.join(clone_path, ".git")):
+        print(f"  Cloning {repo}...")
+        r = subprocess.run(
+            ["git", "clone", "--depth", "1", f"https://github.com/{repo}.git", clone_path],
+            capture_output=True, text=True
+        )
+        if r.returncode != 0:
+            print(f"  ERROR cloning {repo}: {r.stderr.strip()}", file=sys.stderr)
+            continue
+
+    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    known[mkt_id] = {"source": mkt_cfg["source"], "installLocation": clone_path, "lastUpdated": now}
+
+    # If the repo is a marketplace (has marketplace.json), Claude Code will process it on
+    # next start once it's in known_marketplaces.json — nothing more needed here.
+    plugin_json = os.path.join(clone_path, ".claude-plugin", "plugin.json")
+    if not os.path.exists(plugin_json):
+        print(f"  Registered marketplace: {mkt_id} (Claude Code will install plugins on next start)")
+        continue
+
+    # Plugin repo: find which enabled plugin keys reference this marketplace and install them.
+    commit_sha = subprocess.check_output(
+        ["git", "-C", clone_path, "rev-parse", "HEAD"], text=True
+    ).strip()
+    short_sha = commit_sha[:12]
+
+    for plugin_key, is_enabled in enabled.items():
+        if not is_enabled:
+            continue
+        parts = plugin_key.split("@", 1)
+        if len(parts) != 2 or parts[1] != mkt_id:
+            continue
+        if plugin_key in installed.get("plugins", {}):
+            continue
+
+        plugin_name = parts[0]
+        dest = os.path.join(cache_dir, mkt_id, plugin_name, short_sha)
+        os.makedirs(dest, exist_ok=True)
+
+        for item in os.listdir(clone_path):
+            if item == ".git":
+                continue
+            src = os.path.join(clone_path, item)
+            dst = os.path.join(dest, item)
+            if os.path.isdir(src):
+                if os.path.exists(dst):
+                    shutil.rmtree(dst)
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy2(src, dst)
+
+        installed.setdefault("plugins", {})[plugin_key] = [{
+            "scope": "user",
+            "installPath": dest,
+            "version": short_sha,
+            "installedAt": now,
+            "lastUpdated": now,
+            "gitCommitSha": commit_sha,
+        }]
+        print(f"  Installed plugin: {plugin_key}")
+
+with open(known_path, "w") as f:
+    json.dump(known, f, indent=4)
+with open(installed_path, "w") as f:
+    json.dump(installed, f, indent=4)
+
+print("Claude plugin fallback install complete.")
+PYEOF
+else
+  ${ECHO} -e "  Skipping: python3 or git not available"
+fi
+
 ${download_o} ~/.colorEcho "${github_base}PeterDaveHello/ColorEchoForShell/master/dist/ColorEcho.bash" &
 
 ${MKDIR} -p ~/.gcin/

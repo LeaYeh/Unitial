@@ -41,16 +41,30 @@ ${download_o} ~/.aria2/aria2.conf "${github_base}${repo_path}aria2.conf" &
 ${download_o} ~/.hadolint/hadolint.yaml "${github_base}${repo_path}hadolint.yaml" &
 
 ${MKDIR} -p ~/.claude/
+
+# CLAUDE.md: from Unitial (symlink if cloned, else download)
 if [ -n "$UNITIAL_DIR" ]; then
-  ${ECHO} -e "\n\e[1;36;40mCreating Claude Code symlinks from $UNITIAL_DIR...\n\e[0m"
+  ${ECHO} -e "\n\e[1;36;40mCreating Claude Code CLAUDE.md symlink from $UNITIAL_DIR...\n\e[0m"
   ln -sf "${UNITIAL_DIR}/claude/CLAUDE.md" ~/.claude/CLAUDE.md
-  ln -sf "${UNITIAL_DIR}/claude/settings.json" ~/.claude/settings.json
-  rm -rf ~/.claude/commands
-  ln -sf "${UNITIAL_DIR}/claude/commands" ~/.claude/commands
 else
   ${download_o} ~/.claude/CLAUDE.md "${github_base}${repo_path}claude/CLAUDE.md" &
-  ${download_o} ~/.claude/settings.json "${github_base}${repo_path}claude/settings.json" &
+  wait
 fi
+
+# settings.json + commands/: from skills repo (SKILLS_DIR or clone to ~/skills)
+if [ -z "$SKILLS_DIR" ]; then
+  if [ -d "${HOME}/skills/.git" ]; then
+    SKILLS_DIR="${HOME}/skills"
+  else
+    ${ECHO} -e "\n\e[1;36;40mCloning LeaYeh/skills to ~/skills...\n\e[0m"
+    git clone git@github.com:LeaYeh/skills.git "${HOME}/skills"
+    SKILLS_DIR="${HOME}/skills"
+  fi
+fi
+${ECHO} -e "\n\e[1;36;40mCreating Claude Code symlinks from $SKILLS_DIR...\n\e[0m"
+ln -sf "${SKILLS_DIR}/settings.json" ~/.claude/settings.json
+rm -rf ~/.claude/commands
+ln -sf "${SKILLS_DIR}/commands" ~/.claude/commands
 
 ${download_o} ~/.colorEcho "${github_base}PeterDaveHello/ColorEchoForShell/master/dist/ColorEcho.bash" &
 

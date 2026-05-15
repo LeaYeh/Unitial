@@ -41,8 +41,16 @@ ${download_o} ~/.aria2/aria2.conf "${github_base}${repo_path}aria2.conf" &
 ${download_o} ~/.hadolint/hadolint.yaml "${github_base}${repo_path}hadolint.yaml" &
 
 ${MKDIR} -p ~/.claude/
-${download_o} ~/.claude/settings.json "${github_base}${repo_path}claude_settings.json" &
-${download_o} ~/.claude/CLAUDE.md "${github_base}${repo_path}claude.md" &
+if [ -n "$UNITIAL_DIR" ]; then
+  ${ECHO} -e "\n\e[1;36;40mCreating Claude Code symlinks from $UNITIAL_DIR...\n\e[0m"
+  ln -sf "${UNITIAL_DIR}/claude/CLAUDE.md" ~/.claude/CLAUDE.md
+  ln -sf "${UNITIAL_DIR}/claude/settings.json" ~/.claude/settings.json
+  rm -rf ~/.claude/commands
+  ln -sf "${UNITIAL_DIR}/claude/commands" ~/.claude/commands
+else
+  ${download_o} ~/.claude/CLAUDE.md "${github_base}${repo_path}claude/CLAUDE.md" &
+  ${download_o} ~/.claude/settings.json "${github_base}${repo_path}claude/settings.json" &
+fi
 
 ${download_o} ~/.colorEcho "${github_base}PeterDaveHello/ColorEchoForShell/master/dist/ColorEcho.bash" &
 

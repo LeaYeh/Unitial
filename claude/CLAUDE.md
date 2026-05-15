@@ -2,7 +2,7 @@
 
 ## Language
 - Discussion, planning, Q&A: Traditional Chinese (zh-TW)
-- Code, comments, commits, file content: English
+- Code, comments, commits, file content: English only
 
 ## Environment
 - Shell: zsh (or sh on minimal systems)

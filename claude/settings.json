@@ -1,7 +1,8 @@
 {
   "enabledPlugins": {
     "copilot-review@appleboy-skills": true,
-    "andrej-karpathy-skills@karpathy-skills": true
+    "andrej-karpathy-skills@karpathy-skills": true,
+    "commit-splitter@leayeh-skills": true
   },
   "extraKnownMarketplaces": {
     "appleboy-skills": {
@@ -14,6 +15,12 @@
       "source": {
         "source": "github",
         "repo": "forrestchang/andrej-karpathy-skills"
+      }
+    },
+    "leayeh-skills": {
+      "source": {
+        "source": "github",
+        "repo": "LeaYeh/skills"
       }
     }
   },

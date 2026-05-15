@@ -125,11 +125,22 @@ for mkt_id, mkt_cfg in extra.items():
         print(f"  Registered marketplace: {mkt_id} (Claude Code will install plugins on next start)")
         continue
 
-    # Plugin repo: find which enabled plugin keys reference this marketplace and install them.
+    # Plugin repo: install each skill listed in plugin.json that is enabled.
+    # Claude Code expects installPath/skills/<skill-name>/SKILL.md, so we create
+    # a per-skill cache directory and copy only the relevant SKILL.md into it.
     commit_sha = subprocess.check_output(
         ["git", "-C", clone_path, "rev-parse", "HEAD"], text=True
     ).strip()
     short_sha = commit_sha[:12]
+
+    with open(plugin_json) as f:
+        plugin_cfg = json.load(f)
+
+    # Build a map from skill name -> source path (relative to clone root)
+    skill_paths = {}
+    for skill_rel in plugin_cfg.get("skills", []):
+        skill_name = skill_rel.rstrip("/").split("/")[-1]
+        skill_paths[skill_name] = skill_rel.lstrip("./")
 
     for plugin_key, is_enabled in enabled.items():
         if not is_enabled:
@@ -140,15 +151,20 @@ for mkt_id, mkt_cfg in extra.items():
         if plugin_key in installed.get("plugins", {}):
             continue
 
-        plugin_name = parts[0]
-        dest = os.path.join(cache_dir, mkt_id, plugin_name, short_sha)
-        os.makedirs(dest, exist_ok=True)
+        skill_name = parts[0]
+        src_skill_dir = os.path.join(clone_path, skill_paths.get(skill_name, f"skills/{skill_name}"))
+        if not os.path.isdir(src_skill_dir):
+            print(f"  WARNING: skill dir not found for {plugin_key}: {src_skill_dir}", file=sys.stderr)
+            continue
 
-        for item in os.listdir(clone_path):
-            if item == ".git":
-                continue
-            src = os.path.join(clone_path, item)
-            dst = os.path.join(dest, item)
+        # Create installPath/skills/<skill-name>/ and copy SKILL.md into it
+        dest = os.path.join(cache_dir, mkt_id, skill_name, short_sha)
+        dest_skill_dir = os.path.join(dest, "skills", skill_name)
+        os.makedirs(dest_skill_dir, exist_ok=True)
+
+        for item in os.listdir(src_skill_dir):
+            src = os.path.join(src_skill_dir, item)
+            dst = os.path.join(dest_skill_dir, item)
             if os.path.isdir(src):
                 if os.path.exists(dst):
                     shutil.rmtree(dst)

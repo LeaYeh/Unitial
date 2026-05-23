@@ -64,6 +64,31 @@ ln -sf "${SKILLS_DIR}/settings.json" ~/.claude/settings.json
 rm -rf ~/.claude/commands
 ln -sf "${SKILLS_DIR}/commands" ~/.claude/commands
 
+# Checkpoint hooks: copy scripts from skills repo to ~/.claude/scripts/
+printf '\n\033[1;36;40mInstalling checkpoint hook scripts...\n\033[0m\n'
+${MKDIR} -p ~/.claude/scripts/
+CHECKPOINT_SCRIPTS="${SKILLS_DIR}/plugins/checkpoint/skills/checkpoint/scripts"
+if [ -d "$CHECKPOINT_SCRIPTS" ]; then
+  for script in checkpoint-session-start.sh checkpoint-warn.sh; do
+    if [ -f "${CHECKPOINT_SCRIPTS}/${script}" ]; then
+      cp "${CHECKPOINT_SCRIPTS}/${script}" ~/.claude/scripts/
+      ${CHMOD} +x ~/.claude/scripts/${script}
+    fi
+  done
+  printf '  Checkpoint scripts installed.\n'
+else
+  printf '  WARNING: checkpoint scripts not found at %s\n' "$CHECKPOINT_SCRIPTS"
+fi
+
+# Clone .claude.checkpoints repo (requires SSH key to be configured first)
+if [ ! -d "${HOME}/.claude.checkpoints/.git" ]; then
+  printf '\n\033[1;36;40mCloning .claude.checkpoints repo...\n\033[0m\n'
+  git clone git@github.com:LeaYeh/.claude.checkpoints.git "${HOME}/.claude.checkpoints" || \
+    printf '  WARNING: Could not clone .claude.checkpoints. Run manually after SSH setup:\n  git clone git@github.com:LeaYeh/.claude.checkpoints.git ~/.claude.checkpoints\n'
+else
+  printf '\n\033[1;36;40m.claude.checkpoints already present, skipping clone.\n\033[0m\n'
+fi
+
 # Fallback: manually install Claude Code plugins whose repos use plugin.json instead of
 # marketplace.json. Claude Code's extraKnownMarketplaces silently skips these repos because
 # it expects a marketplace format, so we clone and register them directly.

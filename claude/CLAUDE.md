@@ -11,3 +11,7 @@
 ## Git
 - Never amend published commits; always create new ones
 - Never skip hooks (--no-verify)
+
+## Session Continuity
+- If the conversation is very long, has many tool calls, or the user mentions usage limits, proactively suggest running /checkpoint before continuing.
+- If RESUME.md exists at session start, read it immediately and announce: "Resuming: **<task>**. Next: <next step>." then proceed without re-planning.

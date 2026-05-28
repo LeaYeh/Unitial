@@ -80,6 +80,19 @@ else
   printf '  WARNING: checkpoint scripts not found at %s\n' "$CHECKPOINT_SCRIPTS"
 fi
 
+# Install Claude Code skills to ~/.claude/skills/
+printf '\n\033[1;36;40mInstalling Claude Code skills...\n\033[0m\n'
+${MKDIR} -p ~/.claude/skills/
+for skill in architecture-diagram; do
+  src="${SKILLS_DIR}/plugins/${skill}/skills/${skill}"
+  if [ -d "$src" ]; then
+    cp -r "$src" ~/.claude/skills/
+    printf '  %s installed.\n' "$skill"
+  else
+    printf '  WARNING: skill not found at %s\n' "$src"
+  fi
+done
+
 # Clone .claude.checkpoints repo (requires SSH key to be configured first)
 if [ ! -d "${HOME}/.claude.checkpoints/.git" ]; then
   printf '\n\033[1;36;40mCloning .claude.checkpoints repo...\n\033[0m\n'

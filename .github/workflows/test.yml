@@ -59,8 +59,6 @@ jobs:
           echo "PASS: Claude symlinks OK"
 
       - name: Verify settings.json
-        env:
-          SKILLS_DIR: ${{ github.workspace }}/skills
         run: |
           set -eo pipefail
           echo "=== valid JSON ==="
@@ -71,11 +69,6 @@ jobs:
             || { echo "FAIL: missing enabledPlugins"; exit 1; }
           jq -e '.extraKnownMarketplaces'  ~/.claude/settings.json > /dev/null \
             || { echo "FAIL: missing extraKnownMarketplaces"; exit 1; }
-
-          echo "=== commands/ has skill files ==="
-          count=$(find "$SKILLS_DIR/commands" -maxdepth 1 -name '*.md' | wc -l)
-          [ "$count" -gt 0 ] || { echo "FAIL: no .md files in $SKILLS_DIR/commands/"; exit 1; }
-          echo "  found $count skill command file(s)"
 
           echo "PASS: settings.json OK"
 

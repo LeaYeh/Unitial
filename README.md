@@ -38,7 +38,7 @@ git clone https://github.com/LeaYeh/Unitial.git ~/unitial
 UNITIAL_DIR=~/unitial bash ~/unitial/setup.sh
 ```
 
-The setup script will also clone [LeaYeh/skills](https://github.com/LeaYeh/skills) to `~/skills` and install `~/bin/update-claude` for day-to-day updates.
+The setup script will also clone [LeaYeh/skills](https://github.com/LeaYeh/skills) to `~/skills` and install `~/.local/bin/update-claude` for day-to-day updates.
 
 ## Updating Claude Code configuration
 

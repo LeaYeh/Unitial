@@ -38,8 +38,7 @@ ${download_o} ~/.irssi/config "${github_base}${repo_path}irssi_config" &
 ${download_o} ~/.aria2/aria2.conf "${github_base}${repo_path}aria2.conf" &
 ${download_o} ~/.hadolint/hadolint.yaml "${github_base}${repo_path}hadolint.yaml" &
 
-${MKDIR} -p ~/.claude/ ~/bin
-printf '\n# personal bin\nexport PATH="$HOME/bin:$PATH"\n' >> ~/.zshrc
+${MKDIR} -p ~/.claude/ ~/.local/bin
 
 # CLAUDE.md: from Unitial (symlink if cloned, else download)
 if [ -n "$UNITIAL_DIR" ]; then
@@ -220,15 +219,14 @@ else
   printf '  Skipping: python3 or git not available\n'
 fi
 
-# Install update-claude script to ~/bin/
-${MKDIR} -p ~/bin
+# Install update-claude script to ~/.local/bin/
 if [ -n "$UNITIAL_DIR" ]; then
-  cp "${UNITIAL_DIR}/claude/update-claude.sh" ~/bin/update-claude
+  cp "${UNITIAL_DIR}/claude/update-claude.sh" ~/.local/bin/update-claude
 else
-  ${download_o} ~/bin/update-claude "${github_base}${repo_path}claude/update-claude.sh"
+  ${download_o} ~/.local/bin/update-claude "${github_base}${repo_path}claude/update-claude.sh"
 fi
-${CHMOD} +x ~/bin/update-claude
-printf '\n\033[1;36;40mupdate-claude installed to ~/bin/update-claude\n\033[0m\n'
+${CHMOD} +x ~/.local/bin/update-claude
+printf '\n\033[1;36;40mupdate-claude installed to ~/.local/bin/update-claude\n\033[0m\n'
 
 ${download_o} ~/.colorEcho "${github_base}PeterDaveHello/ColorEchoForShell/master/dist/ColorEcho.bash" &
 

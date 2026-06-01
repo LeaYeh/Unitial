@@ -74,15 +74,15 @@ jobs:
 
       - name: Verify update-claude installed
         run: |
-          test -f ~/bin/update-claude || { echo "FAIL: ~/bin/update-claude not installed"; exit 1; }
-          test -x ~/bin/update-claude || { echo "FAIL: ~/bin/update-claude not executable"; exit 1; }
+          test -f ~/.local/bin/update-claude || { echo "FAIL: ~/.local/bin/update-claude not installed"; exit 1; }
+          test -x ~/.local/bin/update-claude || { echo "FAIL: ~/.local/bin/update-claude not executable"; exit 1; }
           echo "PASS: update-claude installed"
 
       - name: Test update-claude --no-pull
         env:
           UNITIAL_DIR: ${{ github.workspace }}/unitial
           SKILLS_DIR: ${{ github.workspace }}/skills
-        run: ~/bin/update-claude --no-pull
+        run: ~/.local/bin/update-claude --no-pull
 
       - name: Verify Claude skills deployed
         run: |

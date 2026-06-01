@@ -13,27 +13,48 @@ Unitial is a shell scripts and a collection of configurations designed to set up
 
 ## Installation
 
-To install with `curl`:
+One-line bootstrap (no git required):
 
 ```sh
 curl -Lo- https://github.com/LeaYeh/Unitial/raw/master/setup.sh | bash
 ```
 
-To install with `wget`:
+With `wget`:
 
 ```sh
-wget  -O- https://github.com/LeaYeh/Unitial/raw/master/setup.sh | bash
+wget -O- https://github.com/LeaYeh/Unitial/raw/master/setup.sh | bash
 ```
 
-For FreeBSD users without both `wget` and `curl`, try:
+FreeBSD (no `curl`/`wget`):
 
 ```sh
 fetch -o- https://github.com/LeaYeh/Unitial/raw/master/setup.sh | bash
 ```
 
-The installation process will complete in seconds.
+If you have git and want symlinks to the live repo instead of downloaded copies:
 
-If you know how to use git and have already installed it, you can also clone this repo, but there is no need.
+```sh
+git clone https://github.com/LeaYeh/Unitial.git ~/unitial
+UNITIAL_DIR=~/unitial bash ~/unitial/setup.sh
+```
+
+The setup script will also clone [LeaYeh/skills](https://github.com/LeaYeh/skills) to `~/skills` and install `~/bin/update-claude` for day-to-day updates.
+
+## Updating Claude Code configuration
+
+After the initial setup, run this on any machine to pull the latest Claude settings, skills, and commands:
+
+```sh
+update-claude
+```
+
+To also update Unitial at the same time:
+
+```sh
+UNITIAL_DIR=~/unitial update-claude
+# or
+update-claude --unitial-dir ~/unitial
+```
 
 ## What's in it?
 

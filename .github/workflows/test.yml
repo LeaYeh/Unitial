@@ -12,6 +12,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: shellcheck setup.sh
         run: shellcheck -S warning setup.sh
+      - name: shellcheck claude/update-claude.sh
+        run: shellcheck -S warning claude/update-claude.sh
 
   integration:
     runs-on: ubuntu-latest
@@ -33,36 +35,73 @@ jobs:
           SKILLS_DIR: ${{ github.workspace }}/skills
         run: bash "${{ github.workspace }}/unitial/setup.sh"
 
-      - name: Verify Claude Code symlinks
+      - name: Verify Claude symlinks
         run: |
           set -eo pipefail
+          echo "=== symlinks exist ==="
+          test -L ~/.claude/CLAUDE.md     || { echo "FAIL: CLAUDE.md not a symlink";     exit 1; }
+          test -L ~/.claude/settings.json || { echo "FAIL: settings.json not a symlink";  exit 1; }
+          test -L ~/.claude/commands      || { echo "FAIL: commands not a symlink";        exit 1; }
 
-          echo "=== checking symlinks exist ==="
-          test -L ~/.claude/CLAUDE.md     || { echo "FAIL: CLAUDE.md is not a symlink";     exit 1; }
-          test -L ~/.claude/settings.json || { echo "FAIL: settings.json is not a symlink";  exit 1; }
-          test -L ~/.claude/commands      || { echo "FAIL: commands is not a symlink";        exit 1; }
-
-          echo "=== checking symlink targets ==="
+          echo "=== symlink targets ==="
           readlink ~/.claude/CLAUDE.md | grep -q "unitial/claude/CLAUDE.md" \
-            || { echo "FAIL: unexpected CLAUDE.md target: $(readlink ~/.claude/CLAUDE.md)";     exit 1; }
+            || { echo "FAIL: CLAUDE.md target: $(readlink ~/.claude/CLAUDE.md)"; exit 1; }
           readlink ~/.claude/settings.json | grep -q "skills/settings.json" \
-            || { echo "FAIL: unexpected settings.json target: $(readlink ~/.claude/settings.json)"; exit 1; }
+            || { echo "FAIL: settings.json target: $(readlink ~/.claude/settings.json)"; exit 1; }
           readlink ~/.claude/commands | grep -q "skills/commands" \
-            || { echo "FAIL: unexpected commands target: $(readlink ~/.claude/commands)";       exit 1; }
+            || { echo "FAIL: commands target: $(readlink ~/.claude/commands)"; exit 1; }
 
-          echo "=== checking targets are readable ==="
-          test -f ~/.claude/CLAUDE.md     || { echo "FAIL: CLAUDE.md target unreadable";       exit 1; }
-          test -f ~/.claude/settings.json || { echo "FAIL: settings.json target unreadable";    exit 1; }
-          test -d ~/.claude/commands      || { echo "FAIL: commands target is not a directory"; exit 1; }
+          echo "=== targets are readable ==="
+          test -f ~/.claude/CLAUDE.md     || { echo "FAIL: CLAUDE.md target unreadable";        exit 1; }
+          test -f ~/.claude/settings.json || { echo "FAIL: settings.json target unreadable";     exit 1; }
+          test -d ~/.claude/commands      || { echo "FAIL: commands target is not a directory";  exit 1; }
 
-          echo "=== checking settings.json is valid JSON ==="
+          echo "PASS: Claude symlinks OK"
+
+      - name: Verify settings.json
+        run: |
+          set -eo pipefail
+          echo "=== valid JSON ==="
           jq '.' ~/.claude/settings.json > /dev/null
 
-          echo "All Claude Code checks passed"
+          echo "=== required keys ==="
+          jq -e '.enabledPlugins'          ~/.claude/settings.json > /dev/null \
+            || { echo "FAIL: missing enabledPlugins"; exit 1; }
+          jq -e '.extraKnownMarketplaces'  ~/.claude/settings.json > /dev/null \
+            || { echo "FAIL: missing extraKnownMarketplaces"; exit 1; }
+
+          echo "=== commands/ has skill files ==="
+          count=$(find -L ~/.claude/commands -maxdepth 1 -name '*.md' | wc -l)
+          [ "$count" -gt 0 ] || { echo "FAIL: no .md files in commands/"; exit 1; }
+          echo "  found $count skill command file(s)"
+
+          echo "PASS: settings.json OK"
+
+      - name: Verify update-claude installed
+        run: |
+          test -f ~/bin/update-claude || { echo "FAIL: ~/bin/update-claude not installed"; exit 1; }
+          test -x ~/bin/update-claude || { echo "FAIL: ~/bin/update-claude not executable"; exit 1; }
+          echo "PASS: update-claude installed"
+
+      - name: Test update-claude --no-pull
+        env:
+          UNITIAL_DIR: ${{ github.workspace }}/unitial
+          SKILLS_DIR: ${{ github.workspace }}/skills
+        run: ~/bin/update-claude --no-pull
+
+      - name: Verify Claude skills deployed
+        run: |
+          set -eo pipefail
+          echo "=== ~/.claude/skills/ ==="
+          count=$(find ~/.claude/skills -mindepth 1 -maxdepth 1 -type d | wc -l)
+          [ "$count" -gt 0 ] || { echo "FAIL: no skills in ~/.claude/skills/"; exit 1; }
+          echo "  found $count skill(s):"
+          ls ~/.claude/skills/
+          echo "PASS: Claude skills OK"
 
       - name: Verify dotfiles installed
         run: |
           set -e
           test -f ~/.gitconfig || { echo "FAIL: ~/.gitconfig not installed"; exit 1; }
           test -f ~/.vimrc     || { echo "FAIL: ~/.vimrc not installed";     exit 1; }
-          echo "Dotfile checks passed"
+          echo "PASS: dotfiles OK"

@@ -72,4 +72,26 @@ alias optipng='\optipng -o7 -zm1-9 -preserve'
 
 ###alias###
 
+# Claude account switcher
+[[ -f ~/.zshrc.secrets ]] && source ~/.zshrc.secrets
+
+function claude-personal() {
+  export ANTHROPIC_AUTH_TOKEN="$CLAUDE_TOKEN_PERSONAL"
+  export CLAUDE_CURRENT_ACCOUNT="personal (smile2140@gmail.com)"
+  echo "Claude account: $CLAUDE_CURRENT_ACCOUNT"
+}
+
+function claude-work() {
+  export ANTHROPIC_AUTH_TOKEN="$CLAUDE_TOKEN_WORK"
+  export CLAUDE_CURRENT_ACCOUNT="work (office@c-sense.at)"
+  echo "Claude account: $CLAUDE_CURRENT_ACCOUNT"
+}
+
+function claude-whoami() {
+  echo "Claude account: ${CLAUDE_CURRENT_ACCOUNT:-personal (smile2140@gmail.com)}"
+}
+
+[[ -n "$CLAUDE_TOKEN_PERSONAL" ]] && export ANTHROPIC_AUTH_TOKEN="$CLAUDE_TOKEN_PERSONAL"
+export CLAUDE_CURRENT_ACCOUNT="personal (smile2140@gmail.com)"
+
 source ~/.colorEcho

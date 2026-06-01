@@ -38,7 +38,8 @@ ${download_o} ~/.irssi/config "${github_base}${repo_path}irssi_config" &
 ${download_o} ~/.aria2/aria2.conf "${github_base}${repo_path}aria2.conf" &
 ${download_o} ~/.hadolint/hadolint.yaml "${github_base}${repo_path}hadolint.yaml" &
 
-${MKDIR} -p ~/.claude/
+${MKDIR} -p ~/.claude/ ~/bin
+printf '\n# personal bin\nexport PATH="$HOME/bin:$PATH"\n' >> ~/.zshrc
 
 # CLAUDE.md: from Unitial (symlink if cloned, else download)
 if [ -n "$UNITIAL_DIR" ]; then

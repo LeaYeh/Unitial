@@ -47,19 +47,7 @@ if [ -n "${UNITIAL_DIR}" ]; then
   printf 'CLAUDE.md re-linked from Unitial.\n'
 fi
 
-# 4. Re-copy local skills from plugins/
-${MKDIR} -p ~/.claude/skills/
-for skill_dir in "${SKILLS_DIR}"/plugins/*/; do
-  skill="$(basename "${skill_dir}")"
-  src="${skill_dir}skills/${skill}"
-  if [ -d "$src" ]; then
-    rm -rf ~/.claude/skills/"${skill}"
-    cp -r "$src" ~/.claude/skills/
-    printf '  skill updated: %s\n' "$skill"
-  fi
-done
-
-# 5. Re-copy checkpoint scripts
+# 4. Re-copy checkpoint scripts
 ${MKDIR} -p ~/.claude/scripts/
 CHECKPOINT_SCRIPTS="${SKILLS_DIR}/plugins/checkpoint/skills/checkpoint/scripts"
 if [ -d "$CHECKPOINT_SCRIPTS" ]; then

@@ -84,15 +84,19 @@ jobs:
           SKILLS_DIR: ${{ github.workspace }}/skills
         run: ~/.local/bin/update-claude --no-pull
 
-      - name: Verify Claude skills deployed
+      - name: Verify no duplicate local skills
         run: |
           set -eo pipefail
-          echo "=== ~/.claude/skills/ ==="
-          count=$(find ~/.claude/skills -mindepth 1 -maxdepth 1 -type d | wc -l)
-          [ "$count" -gt 0 ] || { echo "FAIL: no skills in ~/.claude/skills/"; exit 1; }
-          echo "  found $count skill(s):"
-          ls ~/.claude/skills/
-          echo "PASS: Claude skills OK"
+          echo "=== ~/.claude/skills/ should be empty (skills are marketplace-managed) ==="
+          if [ -d ~/.claude/skills ]; then
+            count=$(find ~/.claude/skills -mindepth 1 -maxdepth 1 -type d | wc -l)
+            if [ "$count" -gt 0 ]; then
+              echo "FAIL: found $count local skill copies — update-claude.sh should not populate ~/.claude/skills/:"
+              ls ~/.claude/skills/
+              exit 1
+            fi
+          fi
+          echo "PASS: no local skill copies found"
 
       - name: Verify dotfiles installed
         run: |

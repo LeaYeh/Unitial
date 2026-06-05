@@ -145,9 +145,12 @@ for mkt_id, mkt_cfg in extra.items():
     known[mkt_id] = {"source": mkt_cfg["source"], "installLocation": clone_path, "lastUpdated": now}
 
     # If the repo is a marketplace (has marketplace.json), Claude Code will process it on
-    # next start once it's in known_marketplaces.json — nothing more needed here.
+    # next start once it's in known_marketplaces.json — nothing more needed here. Check this
+    # first: some repos ship both marketplace.json and a root plugin.json, and the marketplace
+    # format takes precedence (the fallback below is only for plugin-only repos).
+    marketplace_json = os.path.join(clone_path, ".claude-plugin", "marketplace.json")
     plugin_json = os.path.join(clone_path, ".claude-plugin", "plugin.json")
-    if not os.path.exists(plugin_json):
+    if os.path.exists(marketplace_json) or not os.path.exists(plugin_json):
         print(f"  Registered marketplace: {mkt_id} (Claude Code will install plugins on next start)")
         continue
 

@@ -186,6 +186,15 @@ for mkt_id, mkt_cfg in extra.items():
             print(f"  WARNING: skill dir not found for {plugin_key}: {src_skill_dir}", file=sys.stderr)
             continue
 
+        # Remove stale cache dirs from earlier commits so only this short_sha
+        # remains under cache/<mkt>/<skill>/ — otherwise both version dirs are
+        # scanned and the skill loads twice after an upgrade.
+        skill_cache_parent = os.path.join(cache_dir, mkt_id, skill_name)
+        if os.path.isdir(skill_cache_parent):
+            for old_sha in os.listdir(skill_cache_parent):
+                if old_sha != short_sha:
+                    shutil.rmtree(os.path.join(skill_cache_parent, old_sha), ignore_errors=True)
+
         # Create installPath/skills/<skill-name>/ and copy SKILL.md into it
         dest = os.path.join(cache_dir, mkt_id, skill_name, short_sha)
         dest_skill_dir = os.path.join(dest, "skills", skill_name)

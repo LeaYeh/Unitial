@@ -112,55 +112,6 @@ export GHCR_USERNAME=yehya
 function open-webui() {
     local persist_dir="$HOME/open-webui"
     local container_name="open-webui"
-
-    if [ "$1" = "stop" ]; then
-        # Stop the container if it is running
-        if docker ps --filter "name=$container_name" --format "{{.Names}}" | grep -q "^$container_name$"; then
-            docker stop $container_name > /dev/null
-            echo "$container_name container stopped"
-        else
-            echo "$container_name container is not running"
-        fi
-    else
-        # Ensure the host directory exists
-        if [ ! -d "$persist_dir" ]; then
-            if mkdir -p "$persist_dir"; then
-                echo "Directory $persist_dir created"
-            else
-                echo "Failed to create directory $persist_dir"
-                return 1
-            fi
-        fi
-        # Start the container if it is not running
-        if docker ps --filter "name=$container_name" --format "{{.Names}}" | grep -q "^$container_name$"; then
-            port=$(docker port $container_name 8080/tcp | cut -d : -f2)
-            echo "$container_name container already running"
-            echo "Open WebUI is running on http://localhost:$port"
-        elif docker ps -a --filter "name=$container_name" --format "{{.Names}}" | grep -q "^$container_name$"; then
-            if docker start $container_name > /dev/null; then
-                port=$(docker port $container_name 8080/tcp | cut -d : -f2)
-                echo "$container_name container started"
-                echo "Open WebUI is now running on http://localhost:$port"
-            else
-                echo "Failed to start $container_name container"
-                return 1
-            fi
-        else
-            if docker run -d -p 3000:8080 -v "$persist_dir":/app/backend/data --name $container_name --restart always ghcr.io/open-webui/open-webui:main > /dev/null; then
-                port=$(docker port $container_name 8080/tcp | cut -d : -f2)
-                echo "$container_name container created and started"
-                echo "Open WebUI is now running on http://localhost:$port"
-            else
-                echo "Failed to create and start $container_name container"
-                return 1
-            fi
-        fi
-    fi
-}
-
-function open-webui() {
-    local persist_dir="$HOME/open-webui"
-    local container_name="open-webui"
     local image_name="ghcr.io/open-webui/open-webui:main"
 
     # Nested function to handle updates

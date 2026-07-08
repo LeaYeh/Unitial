@@ -1,0 +1,8 @@
+# Never commit real secrets — only the *.example template belongs in the repo
+*.secrets
+.zshrc.secrets
+zshrc.secrets
+
+# OS / editor cruft
+.DS_Store
+*.swp

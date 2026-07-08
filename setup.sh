@@ -38,6 +38,31 @@ ${download_o} ~/.irssi/config "${github_base}${repo_path}irssi_config" &
 ${download_o} ~/.aria2/aria2.conf "${github_base}${repo_path}aria2.conf" &
 ${download_o} ~/.hadolint/hadolint.yaml "${github_base}${repo_path}hadolint.yaml" &
 
+# Bootstrap shell secrets file from template (never overwrite an existing one)
+if [ ! -f ~/.zshrc.secrets ]; then
+  printf '\n\033[1;33;40mCreating ~/.zshrc.secrets from template — fill in your tokens after setup.\n\033[0m\n'
+  if [ -n "$UNITIAL_DIR" ] && [ -f "${UNITIAL_DIR}/zshrc.secrets.example" ]; then
+    ${CAT} "${UNITIAL_DIR}/zshrc.secrets.example" > ~/.zshrc.secrets
+  else
+    ${download_o} ~/.zshrc.secrets "${github_base}${repo_path}zshrc.secrets.example"
+  fi
+  ${CHMOD} 600 ~/.zshrc.secrets
+fi
+
+# Install Claude Code CLI if missing
+if ! type claude > /dev/null 2>&1; then
+  printf '\n\033[1;36;40mInstalling Claude Code CLI...\n\033[0m\n'
+  if type npm > /dev/null 2>&1; then
+    npm install -g @anthropic-ai/claude-code
+  elif [ "$os" = "Darwin" ] && type brew > /dev/null 2>&1; then
+    brew install --cask claude-code
+  else
+    printf '  WARNING: neither npm nor brew found; install Claude Code manually:\n  https://docs.claude.com/en/docs/claude-code/setup\n'
+  fi
+else
+  printf '\n\033[1;36;40mClaude Code CLI already installed, skipping.\n\033[0m\n'
+fi
+
 ${MKDIR} -p ~/.claude/ ~/.local/bin
 
 # CLAUDE.md: from Unitial (symlink if cloned, else download)

@@ -24,10 +24,6 @@
 - `/diagnose`    — before any bug fix
 - `/checkpoint`  — when approaching context limits
 
-### Harness (all projects)
-- SessionStart:     `~/.claude/scripts/checkpoint-session-start.sh`
-- UserPromptSubmit: `~/.claude/scripts/checkpoint-warn.sh`
-
 ### Session Config (all projects)
 - Permanent permissions → `.claude/settings.json` (tracked, commit this)
 - Session-only permissions → `.claude/settings.local.json` (never commit, periodic cleanup)

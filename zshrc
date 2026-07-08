@@ -1000,3 +1000,7 @@ export CLAUDE_CURRENT_ACCOUNT="personal (smile2140@gmail.com)"
 
 # omnara
 path=("/Users/leayeh/.omnara/bin" $path)
+
+# Machine-specific overrides (never committed); sourced last so it wins.
+# Put per-host tweaks here, e.g. GNU coreutils: alias ls='ls -F --color=auto'
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local

@@ -26,9 +26,40 @@ fi
 
 printf '\n\033[1;36;40mUnitial is started to initial your Unix-like working environment\n\nPlease wait...\n\n\033[0m\n'
 
-printf '\n\033[1;36;40mDownload and setup configs from server...\n\033[0m\n'
-for file in gitconfig tcshrc bashrc bash_profile inputrc vimrc zshrc gitignore_global tmux.conf xinputrc wgetrc curlrc tigrc editorconfig php_cs markdownlintrc lftprc; do
-  ${download_o} - "${github_base}${repo_path}${file}" | ${CAT} >> ~/."$file" &
+# Resolve the Unitial clone (source of truth for symlinks). Prefer $UNITIAL_DIR;
+# else the clone this script lives in (run as ./setup.sh); else ~/.unitial; else clone it.
+if [ -z "$UNITIAL_DIR" ]; then
+  self_dir="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
+  if [ -n "$self_dir" ] && [ -f "$self_dir/setup.sh" ] && [ -d "$self_dir/.git" ]; then
+    UNITIAL_DIR="$self_dir"
+  elif [ -d "$HOME/.unitial/.git" ]; then
+    UNITIAL_DIR="$HOME/.unitial"
+  else
+    printf '\n\033[1;36;40mCloning LeaYeh/Unitial to ~/.unitial...\n\033[0m\n'
+    git clone https://github.com/LeaYeh/Unitial.git "$HOME/.unitial"
+    UNITIAL_DIR="$HOME/.unitial"
+  fi
+fi
+
+# Idempotent symlink: repoint if already a link; back up a real file once, then link.
+link_file() {
+  _src="$1"; _dst="$2"
+  if [ ! -e "$_src" ]; then
+    printf '  WARNING: source missing, skip: %s\n' "$_src"; return
+  fi
+  if [ -L "$_dst" ]; then
+    ln -sf "$_src" "$_dst"
+  elif [ -e "$_dst" ]; then
+    [ -e "$_dst.unitial-backup" ] || cp "$_dst" "$_dst.unitial-backup"
+    ln -sf "$_src" "$_dst"
+  else
+    ln -sf "$_src" "$_dst"
+  fi
+}
+
+printf '\n\033[1;36;40mLinking dotfiles from %s...\n\033[0m\n' "$UNITIAL_DIR"
+for file in gitconfig tcshrc bashrc bash_profile inputrc vimrc zshrc gitignore_global tmux.conf xinputrc curlrc tigrc editorconfig php_cs markdownlintrc lftprc; do
+  link_file "${UNITIAL_DIR}/${file}" ~/."$file"
 done
 
 ${MKDIR} -p ~/.irssi/ ~/.git/contrib/ ~/.vim/colors/ ~/.vim/swp/ ~/.vim/bak/ ~/.vim/undo/ ~/.aria2/ ~/.w3m/ ~/.hadolint/
@@ -37,6 +68,8 @@ ${download_o} ~/.w3m/config "${github_base}${repo_path}w3mconfig" &
 ${download_o} ~/.irssi/config "${github_base}${repo_path}irssi_config" &
 ${download_o} ~/.aria2/aria2.conf "${github_base}${repo_path}aria2.conf" &
 ${download_o} ~/.hadolint/hadolint.yaml "${github_base}${repo_path}hadolint.yaml" &
+# wgetrc is download-overwrite (not symlinked): the FreeBSD ca-cert step appends to it
+${download_o} ~/.wgetrc "${github_base}${repo_path}wgetrc" &
 
 # Bootstrap shell secrets file from template (never overwrite an existing one)
 if [ ! -f ~/.zshrc.secrets ]; then
@@ -255,26 +288,23 @@ ${download_o} ~/.gcin/gtab.list "${github_base}${repo_path}gtab.list" &
 
 ${MKDIR} -p -m 700 ~/.ssh/.tmp_session/
 ${CHMOD} 700 ~/.ssh/
-${download_o} - "${github_base}${repo_path}ssh_config" | ${CAT} >> ~/.ssh/config &
+if ! grep -q 'BEGIN UNITIAL SSH CONFIG' ~/.ssh/config 2>/dev/null; then
+  { printf '\n# BEGIN UNITIAL SSH CONFIG\n'; ${CAT} "${UNITIAL_DIR}/ssh_config"; printf '# END UNITIAL SSH CONFIG\n'; } >> ~/.ssh/config
+fi
 ${TOUCH} ~/.ssh/authorized_keys
 ${CHMOD} 600 ~/.ssh/config ~/.ssh/authorized_keys
 
 wait
 
-printf '\n\033[1;36;40mAdd some color setting which depends on your OS...\n\033[0m\n'
-if [ "$os" = "FreeBSD" ] || [ "$os" = "Darwin" ]; then
-  printf '\n#color setting\nalias ls='"'"'\\ls -F'"'"'\n' >> ~/.zshrc
-  printf '\n#color setting\nalias ls '"'"'\\ls -F'"'"'\n' >> ~/.tcshrc
-else
-  printf '\n#color setting\nalias ls='"'"'\\ls -F --color=auto'"'"'\n' >> ~/.zshrc
-  printf '\n#color setting\nalias ls '"'"'\\ls -F --color=auto'"'"'\n' >> ~/.tcshrc
-fi
+# Machine-specific overrides live here (never committed). The tracked zshrc
+# sources it last, so per-host tweaks (e.g. GNU `ls --color=auto`) go here.
+${TOUCH} ~/.zshrc.local
 
 if [ "$os" = "FreeBSD" ]; then
   printf '\n\033[1;36;40mAdd FreeBSD'"'"'s package mirror setting...\n\033[0m\n'
-  printf '\n#package mirror setting\nexport PACKAGEROOT=http://ftp.tw.freebsd.org\n' >> ~/.bashrc
-  printf '\n#package mirror setting\nexport PACKAGEROOT=http://ftp.tw.freebsd.org\n' >> ~/.zshrc
-  printf '\n#package mirror setting\nsetenv PACKAGEROOT http://ftp.tw.freebsd.org\n' >> ~/.tcshrc
+  if ! grep -q 'PACKAGEROOT=http://ftp.tw.freebsd.org' ~/.zshrc.local 2>/dev/null; then
+    printf '\n# package mirror setting\nexport PACKAGEROOT=http://ftp.tw.freebsd.org\n' >> ~/.zshrc.local
+  fi
 fi
 
 if command -v git; then
@@ -297,8 +327,8 @@ wait
 
 if [ "$os" = "FreeBSD" ] && [ -r /usr/local/share/certs/ca-root-nss.crt ]; then
   printf '\n\033[1;36;40mAdd ca-certificate path for FreeBSD'"'"'s wget & aria2...\n\033[0m\n'
-  printf '\nca-certificate=/usr/local/share/certs/ca-root-nss.crt\n' >> ~/.wgetrc
-  printf '\nca-certificate=/usr/local/share/certs/ca-root-nss.crt\n' >> ~/.aria2/aria2.conf
+  grep -q 'ca-root-nss.crt' ~/.wgetrc 2>/dev/null || printf '\nca-certificate=/usr/local/share/certs/ca-root-nss.crt\n' >> ~/.wgetrc
+  grep -q 'ca-root-nss.crt' ~/.aria2/aria2.conf 2>/dev/null || printf '\nca-certificate=/usr/local/share/certs/ca-root-nss.crt\n' >> ~/.aria2/aria2.conf
 fi
 
 printf '\n\033[1;36;40mUnitial installation was finished!\n\nPlease terminate all other works and restart your shell or re-login.\n\033[0m\n'

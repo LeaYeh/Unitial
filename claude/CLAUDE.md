@@ -13,7 +13,6 @@
 - Never skip hooks (--no-verify)
 
 ## Session Continuity
-- If the conversation is very long, has many tool calls, or the user mentions usage limits, proactively suggest running /checkpoint before continuing.
 - If RESUME.md exists at session start, read it immediately and announce: "Resuming: **<task>**. Next: <next step>." then proceed without re-planning.
 
 ## Default Claude Code Framework
@@ -22,7 +21,6 @@
 - `/record-adr`  — after any design decision
 - `/grill-me`    — before architecture changes or major design discussions
 - `/diagnose`    — before any bug fix
-- `/checkpoint`  — when approaching context limits
 
 ### Session Config (all projects)
 - Permanent permissions → `.claude/settings.json` (tracked, commit this)

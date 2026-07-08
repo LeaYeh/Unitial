@@ -100,7 +100,7 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-eval "$(starship init zsh)"
+command -v starship > /dev/null 2>&1 && eval "$(starship init zsh)"
 
 alias francinette=/Users/leayeh/francinette/tester.sh
 
@@ -740,7 +740,7 @@ source ~/.colorEcho
 
 #color setting
 alias ls='\ls -F'
-export PATH="$(npm root -g | sed s/node_modules/bin/):$PATH"
+command -v npm > /dev/null 2>&1 && export PATH="$(npm root -g | sed s/node_modules/bin/):$PATH"
 
 #load script
 fpath=(~/ $fpath)

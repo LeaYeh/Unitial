@@ -12,8 +12,12 @@ NO_PULL=0
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --unitial-dir)       UNITIAL_DIR="$2"; shift 2 ;;
-    --agent-loadout-dir) AGENT_LOADOUT_DIR="$2"; shift 2 ;;
+    --unitial-dir)
+      [ "$#" -ge 2 ] || { printf -- '--unitial-dir requires a value\n' >&2; exit 1; }
+      UNITIAL_DIR="$2"; shift 2 ;;
+    --agent-loadout-dir)
+      [ "$#" -ge 2 ] || { printf -- '--agent-loadout-dir requires a value\n' >&2; exit 1; }
+      AGENT_LOADOUT_DIR="$2"; shift 2 ;;
     --no-pull)           NO_PULL=1; shift ;;
     *) printf 'Unknown option: %s\n' "$1" >&2; exit 1 ;;
   esac

@@ -84,6 +84,15 @@ jobs:
           SKILLS_DIR: ${{ github.workspace }}/skills
         run: ~/.local/bin/update-claude --no-pull
 
+      - name: Test update-claude rejects a dir flag with no value (regression)
+        timeout-minutes: 1
+        run: |
+          if ~/.local/bin/update-claude --agent-loadout-dir 2>/tmp/err; then
+            echo "FAIL: expected non-zero exit when --agent-loadout-dir has no value"; cat /tmp/err; exit 1
+          fi
+          grep -q "requires a value" /tmp/err || { echo "FAIL: missing expected error message"; cat /tmp/err; exit 1; }
+          echo "PASS: rejects missing value without hanging"
+
       - name: Verify no duplicate local skills
         run: |
           set -eo pipefail

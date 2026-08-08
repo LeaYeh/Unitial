@@ -5,7 +5,6 @@
 #   UNITIAL_DIR  env var or --unitial-dir flag; if set, also pulls Unitial and re-links CLAUDE.md
 #   --no-pull    skip git pull steps (useful in CI where repos are already checked out)
 
-CHMOD="/bin/chmod"
 MKDIR="/bin/mkdir"
 NO_PULL=0
 
@@ -17,13 +16,33 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+# Stash local changes (if any), pull --ff-only, then restore the stash.
+# Returns non-zero if the pull itself fails; stash pop failures are reported but non-fatal.
+pull_with_stash() {
+  repo_dir="$1"
+  stashed=0
+  if [ -n "$(git -C "${repo_dir}" status --porcelain)" ]; then
+    git -C "${repo_dir}" stash push -u -m "update-claude autostash" >/dev/null || return 1
+    stashed=1
+  fi
+
+  git -C "${repo_dir}" pull --ff-only
+  pull_status=$?
+
+  if [ "$stashed" -eq 1 ]; then
+    git -C "${repo_dir}" stash pop || printf 'WARNING: git stash pop failed in %s; resolve manually\n' "${repo_dir}" >&2
+  fi
+
+  return "$pull_status"
+}
+
 SKILLS_DIR="${SKILLS_DIR:-${HOME}/skills}"
 
 # 1. Pull skills repo
 if [ -d "${SKILLS_DIR}/.git" ]; then
   if [ "$NO_PULL" -eq 0 ]; then
     printf 'Updating skills repo (%s)...\n' "$SKILLS_DIR"
-    git -C "${SKILLS_DIR}" pull --ff-only || { printf 'ERROR: git pull failed\n' >&2; exit 1; }
+    pull_with_stash "${SKILLS_DIR}" || { printf 'ERROR: git pull failed\n' >&2; exit 1; }
   fi
 else
   printf 'ERROR: skills repo not found at %s\n' "${SKILLS_DIR}" >&2
@@ -41,23 +60,10 @@ printf 'Symlinks updated.\n'
 if [ -n "${UNITIAL_DIR}" ]; then
   if [ "$NO_PULL" -eq 0 ] && [ -d "${UNITIAL_DIR}/.git" ]; then
     printf 'Updating Unitial (%s)...\n' "$UNITIAL_DIR"
-    git -C "${UNITIAL_DIR}" pull --ff-only || printf 'WARNING: Unitial git pull failed, skipping\n'
+    pull_with_stash "${UNITIAL_DIR}" || printf 'WARNING: Unitial git pull failed, skipping\n'
   fi
   ln -sf "${UNITIAL_DIR}/claude/CLAUDE.md" ~/.claude/CLAUDE.md
   printf 'CLAUDE.md re-linked from Unitial.\n'
-fi
-
-# 4. Re-copy checkpoint scripts
-${MKDIR} -p ~/.claude/scripts/
-CHECKPOINT_SCRIPTS="${SKILLS_DIR}/plugins/checkpoint/skills/checkpoint/scripts"
-if [ -d "$CHECKPOINT_SCRIPTS" ]; then
-  for script in checkpoint-session-start.sh checkpoint-warn.sh; do
-    if [ -f "${CHECKPOINT_SCRIPTS}/${script}" ]; then
-      cp "${CHECKPOINT_SCRIPTS}/${script}" ~/.claude/scripts/
-      ${CHMOD} +x ~/.claude/scripts/"${script}"
-    fi
-  done
-  printf 'Checkpoint scripts updated.\n'
 fi
 
 printf '\nClaude Code configuration updated.\n'

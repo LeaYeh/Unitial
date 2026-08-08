@@ -56,6 +56,16 @@ UNITIAL_DIR=~/unitial update-claude
 update-claude --unitial-dir ~/unitial
 ```
 
+If you've also cloned [`agent-loadout`](https://github.com/LeaYeh/agent-loadout) (profile templates for
+`init-project.sh`), pull it in the same pass — this just keeps the local clone current, it doesn't
+symlink or apply anything:
+
+```sh
+AGENT_LOADOUT_DIR=~/agent-loadout update-claude
+# or
+update-claude --agent-loadout-dir ~/agent-loadout
+```
+
 ## What's in it?
 
 - Shell configurations (Bash, tcsh, csh, zsh):

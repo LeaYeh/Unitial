@@ -1,17 +1,20 @@
 #!/bin/sh
 # Update Claude Code config: pull skills repo, re-sync symlinks and local skills.
-# Usage: update-claude [--unitial-dir <path>] [--no-pull]
-#   SKILLS_DIR   env var or ~/skills (default)
-#   UNITIAL_DIR  env var or --unitial-dir flag; if set, also pulls Unitial and re-links CLAUDE.md
-#   --no-pull    skip git pull steps (useful in CI where repos are already checked out)
+# Usage: update-claude [--unitial-dir <path>] [--agent-loadout-dir <path>] [--no-pull]
+#   SKILLS_DIR         env var or ~/skills (default)
+#   UNITIAL_DIR        env var or --unitial-dir flag; if set, also pulls Unitial and re-links CLAUDE.md
+#   AGENT_LOADOUT_DIR  env var or --agent-loadout-dir flag; if set, also pulls agent-loadout
+#                      (no symlinking — profiles are applied per-project via its own init-project.sh)
+#   --no-pull          skip git pull steps (useful in CI where repos are already checked out)
 
 MKDIR="/bin/mkdir"
 NO_PULL=0
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --unitial-dir) UNITIAL_DIR="$2"; shift 2 ;;
-    --no-pull)     NO_PULL=1; shift ;;
+    --unitial-dir)       UNITIAL_DIR="$2"; shift 2 ;;
+    --agent-loadout-dir) AGENT_LOADOUT_DIR="$2"; shift 2 ;;
+    --no-pull)           NO_PULL=1; shift ;;
     *) printf 'Unknown option: %s\n' "$1" >&2; exit 1 ;;
   esac
 done
@@ -64,6 +67,14 @@ if [ -n "${UNITIAL_DIR}" ]; then
   fi
   ln -sf "${UNITIAL_DIR}/claude/CLAUDE.md" ~/.claude/CLAUDE.md
   printf 'CLAUDE.md re-linked from Unitial.\n'
+fi
+
+# 4. Optionally pull agent-loadout (profile templates; applied per-project via its own init-project.sh)
+if [ -n "${AGENT_LOADOUT_DIR}" ]; then
+  if [ "$NO_PULL" -eq 0 ] && [ -d "${AGENT_LOADOUT_DIR}/.git" ]; then
+    printf 'Updating agent-loadout (%s)...\n' "$AGENT_LOADOUT_DIR"
+    pull_with_stash "${AGENT_LOADOUT_DIR}" || printf 'WARNING: agent-loadout git pull failed, skipping\n'
+  fi
 fi
 
 printf '\nClaude Code configuration updated.\n'
